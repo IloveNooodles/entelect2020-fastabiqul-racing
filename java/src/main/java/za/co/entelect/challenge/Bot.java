@@ -42,9 +42,12 @@ public class Bot {
         // Basic fix logic
         List<Object> allVisibleBlocks = getBlocksInFront(myCar.position.lane, myCar.position.block, gameState);
         List<Object> blocks = getBlocksInFrontBySpeed(allVisibleBlocks, myCurrentSpeed);
-        List<Object> blocksRight = getBlocksInFront(myCar.position.lane + 1, myCar.position.block, gameState);
-        List<Object> blocksLeft = getBlocksInFront(myCar.position.lane - 1, myCar.position.block, gameState);
-        List<Object> usualBlocks = blocks.subList(0, 9);
+        // List<Object> blocksRight = getBlocksInFront(myCar.position.lane + 1,
+        // myCar.position.block, gameState);
+        // List<Object> blocksLeft = getBlocksInFront(myCar.position.lane - 1,
+        // myCar.position.block, gameState);
+        // List<Object> usualBlocks = blocks.subList(0, 9);
+        // System.out.println(blocks.size());
         List<Object> nextBlocks = blocks.subList(0, 1);
 
         // Fix first if too damaged to move
@@ -72,19 +75,20 @@ public class Bot {
                 } else if (myCar.position.lane == 4) {
                     return TURN_LEFT;
                 } else {
-                    if(myCar.position.lane == 2){
-                        if(getBlocksInFrontBySpeed(blocksRight, myCurrentSpeed).contains(Terrain.MUD)){
+                    List<Object> blocksRight = getBlocksInFront(myCar.position.lane + 1, myCar.position.block,
+                            gameState);
+                    List<Object> blocksLeft = getBlocksInFront(myCar.position.lane - 1, myCar.position.block,
+                            gameState);
+                    if (myCar.position.lane == 2) {
+                        if (getBlocksInFrontBySpeed(blocksRight, myCurrentSpeed).contains(Terrain.MUD)) {
                             return TURN_LEFT;
-                        }
-                        else{
+                        } else {
                             return TURN_RIGHT;
                         }
-                    }
-                    else if(myCar.position.lane == 3){
-                        if(getBlocksInFrontBySpeed(blocksLeft, myCurrentSpeed).contains(Terrain.MUD)){
+                    } else if (myCar.position.lane == 3) {
+                        if (getBlocksInFrontBySpeed(blocksLeft, myCurrentSpeed).contains(Terrain.MUD)) {
                             return TURN_RIGHT;
-                        }
-                        else{
+                        } else {
                             return TURN_LEFT;
                         }
                     }
@@ -151,8 +155,12 @@ public class Bot {
         return blocks;
     }
 
-    private List<Object> getBlocksInFrontBySpeed(List<Object> blocks, int speed){
-        return blocks.subList(0, speed);
+    private List<Object> getBlocksInFrontBySpeed(List<Object> blocks, int speed) {
+        if (speed > 0) {
+            return blocks.subList(0, speed);
+        } else {
+            return blocks.subList(0, 1);
+        }
     }
 
 }

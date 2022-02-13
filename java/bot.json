@@ -3,6 +3,6 @@
 	"email": "John.Doe@example.com",
 	"nickName": "FASTabiqul",
 	"botLocation": "/target",
-	"botFileName": "java-reference-bot-jar-with-dependencies.jar",
+	"botFileName": "java-fastabiqul-bot-1.0-SNAPSHOT-jar-with-dependencies.jar",
 	"botLanguage": "java"
 }
