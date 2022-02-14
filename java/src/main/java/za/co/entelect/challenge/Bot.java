@@ -15,6 +15,7 @@ import java.security.SecureRandom;
 public class Bot {
   private static final int maxSpeed = 9;
   private List<Command> directionList = new ArrayList<>();
+  private int cybertruckPos = 0;
 
   private final Random random;
 
@@ -45,6 +46,9 @@ public class Bot {
       Terrain.OIL_SPILL
   };
 
+  private int listSpeed[] = { 9, 9, 8, 6, 3, 0 };
+
+  private HashMap<Terrain, Integer> damage = new HashMap<Terrain, Integer>();
   HashMap<Terrain, Integer> points = new HashMap<Terrain, Integer>();
 
   private void setup() {
@@ -54,10 +58,13 @@ public class Bot {
     for (Terrain t : listBlockable) {
       if (t == Terrain.MUD) {
         points.put(t, -3);
+        damage.put(t, 1);
       } else if (t == Terrain.WALL) {
-        points.put(t, 0);
+        points.put(t, -999);
+        damage.put(t, 2);
       } else {
         points.put(t, -4);
+        damage.put(t, 1);
       }
     }
   }
@@ -78,41 +85,88 @@ public class Bot {
     List<Object> nextBlocks = blocks.subList(0, 1);
     int emptyLand = countEmpty(myCar.position.lane, myCar.position.block, gameState);
     int blockerLand = countLaneBlockers(myCar.position.lane, myCar.position.block, gameState);
+    System.out.println(blocks);
     // TODO
     // 1. Fixed car while the damage is >= 3
+    // Bisa bandingin dulu sebanyak banyak bloknya baru belok FIXME
+    // bisa bandingin damege FIXME
+    // use lizard masi bug gaada apa2
+    // prioritas 1.fix klo 5, 2. speed 0,
+    // bug: kalo udah 15 masi accelerate
+    // udah maxspeed masi accelerate (fungsi validasi) FIXME
+    // cybertruck bisa ngecek klo udah maju berapa
+    // BOOST > EMP
     if (myCar.damage >= 3) {
       return FIX;
     }
+
+    if (myCar.speed < 3) {
+      return ACCELERATE;
+    }
     // 2. use boost while you can and wall is bad
-    if (myCar.boostCounter != 0 && !myCar.boosting && !blocks.contains(Terrain.WALL)) {
-      return BOOST;
+    if (hasPowerUp(PowerUps.BOOST, myCar.powerups) && myCar.boosting == false) {
+      if (myCar.damage != 0) {
+        return FIX;
+      }
       // the consideration is we don't need to crash but it can be returned to max
       // speed
+      if (blockerLand == 0 && !blocks.contains(true))
+        return BOOST;
     }
-    // 3. Accelerate First while avoiding crash and pickup powerups need to maximize
-    if (myCar.speed <= maxSpeed && blockerLand == 0) {
+
+    if (blocks.contains(true)) {
+      if (myCar.position.lane == 1) {
+        return TURN_RIGHT;
+      } else if (myCar.position.lane == 4) {
+        return TURN_LEFT;
+      }
+      int i = random.nextInt(directionList.size());
+      if (i == -1) {
+        return TURN_LEFT;
+      } else {
+        return TURN_RIGHT;
+      }
+    }
+
+    int bestChoice = turnDesicion(myCar.position.lane, myCar.position.block, gameState);
+    if (bestChoice == 1) {
+      return TURN_RIGHT;
+    } else if (bestChoice == -1) {
+      return TURN_LEFT;
+    }
+
+    // ini harus dicek lagi kaya convert damage sm speed skrg
+    if (myCar.speed <= listSpeed[myCar.damage] && blockerLand == 0) {
       return ACCELERATE;
     }
 
-    // 4. klo udah maxSpeed tinggal cek kiri kanan ambil best possiblity with the
-    // point / powerup
-    int bestChoice = turnDesicion(myCar.position.lane, myCar.position.block, gameState);
-    if (bestChoice != 0) {
-      return new ChangeLaneCommand(bestChoice);
+    // 3. Accelerate First while avoiding crash and pickup powerups need to maximize
+
+    if (hasPowerUp(PowerUps.LIZARD, myCar.powerups) && (blockerLand > 0 || blocks.contains(true))) {
+      return LIZARD;
     }
+
+    if (opponent.position.block > myCar.position.block && hasPowerUp(PowerUps.EMP, myCar.powerups)) {
+      return EMP;
+    } else if (hasPowerUp(PowerUps.TWEET, myCar.powerups) && blockerLand == 0) {
+      try {
+        cybertruckPos = opponent.position.block + opponent.speed + 3;
+        return new TweetCommand(opponent.position.lane, cybertruckPos);
+      } catch (Exception e) {
+        return ACCELERATE;
+      }
+    } else if (opponent.position.block < myCar.position.block && hasPowerUp(PowerUps.OIL, myCar.powerups)) {
+      return OIL;
+    }
+    if (myCar.speed <= listSpeed[myCar.damage]) {
+      return ACCELERATE;
+    }
+    return DO_NOTHING;
+    // 4. klo udah maxSpeed tinggal cek kiri kanan ambil best possiblity with the
+
     // attacking command
     // 5. klo ternytata lanenya sama bisa mutusin pidnah atau engga bisa dicek sama
     // powerup nya musuh
-    if (opponent.position.lane == myCar.position.lane) {
-      int difference = Math.abs(opponent.position.block - myCar.position.block);
-      if (opponent.position.block > myCar.position.block && hasPowerUp(PowerUps.EMP, myCar.powerups)
-          && difference <= opponent.speed) {
-        return EMP;
-      } else if (opponent.position.block < myCar.position.block && hasPowerUp(PowerUps.OIL, myCar.powerups)
-          && difference <= opponent.speed) {
-        return OIL;
-      }
-    }
     // 6.
     // defensive command
     // tweet command
@@ -131,7 +185,6 @@ public class Bot {
     // return directionList.get(i);
     // }
     // }
-    return ACCELERATE;
   }
 
   // nentuin belok kanan atau kiri
@@ -140,15 +193,21 @@ public class Bot {
     int bestChoice = 0;
     if (lane == 1) {
       int rightPoint = convertPoint(lane + 1, block, gameState);
+      if (rightPoint > curPoint) {
+        bestChoice = 1;
+      }
       if (curPoint == rightPoint) {
         bestChoice = compareLane(lane, lane + 1, block, gameState);
       }
     } else if (lane == 4) {
       int leftPoint = convertPoint(lane - 1, block, gameState);
+      if (leftPoint > curPoint) {
+        bestChoice = -1;
+      }
       if (curPoint == leftPoint) {
         bestChoice = compareLane(lane, lane - 1, block, gameState);
       }
-    } else {
+    } else if (lane >= 2 && lane <= 3) {
       bestChoice = compareThreeLine(lane, block, gameState);
     }
 
@@ -156,22 +215,52 @@ public class Bot {
   }
 
   private int compareThreeLine(int lane, int block, GameState gameState) {
-    int direction = compareLane(lane, lane - 1, block, gameState);
-    direction = compareLane(lane + 1, direction, block, gameState);
-    return direction;
+    // compare left and right
+    int leftRight = compareLane(lane - 1, lane + 1, block, gameState);
+    // compare the best and the current lane;
+    leftRight = convertIntToLane(leftRight, lane);
+    int bestLane = compareLane(lane, leftRight, block, gameState);
+    return bestLane;
+    // int left = compareLane(lane, lane - 1, block, gameState); // 0
+    // int right = compareLane(lane, lane + 1, block, gameState); // 1
+    // left = convertIntToLane(left, lane); // lane
+    // right = convertIntToLane(right, lane); // lane+1
+  }
+
+  private int convertIntToLane(int val, int lane) {
+    if (val == -1) {
+      return lane - 1;
+    } else if (val == 0) {
+      return lane;
+    } else {
+      return lane + 1;
+    }
   }
 
   private int compareLane(int currentLane, int anotherLane, int block, GameState gameState) {
     int curPoint = convertPoint(currentLane, block, gameState);
     int anotherPoint = convertPoint(anotherLane, block, gameState);
     int direction = currentLane > anotherLane ? -1 : 1;
-    if (curPoint > anotherPoint) {
-      return 0;
-    } else if (curPoint == anotherPoint) {
-      HashMap<Terrain, Integer> curPowerUp = generatePossiblePowerUp(currentLane, block, gameState);
-      HashMap<Terrain, Integer> anotherPowerUp = generatePossiblePowerUp(currentLane, block, gameState);
-      if (comparePowerUp(curPowerUp, anotherPowerUp)) {
+    if (Math.abs(currentLane - anotherLane) >= 2) {
+      if (curPoint > anotherPoint) {
+        return -1;
+      } else if (curPoint == anotherPoint) {
+        HashMap<Terrain, Integer> curPowerUp = generatePossiblePowerUp(currentLane, block, gameState);
+        HashMap<Terrain, Integer> anotherPowerUp = generatePossiblePowerUp(anotherLane, block, gameState);
+        if (comparePowerUp(curPowerUp, anotherPowerUp)) {
+          return -1;
+        }
+      }
+      return 1;
+    } else {
+      if (curPoint > anotherPoint) {
         return 0;
+      } else if (curPoint == anotherPoint) {
+        HashMap<Terrain, Integer> curPowerUp = generatePossiblePowerUp(currentLane, block, gameState);
+        HashMap<Terrain, Integer> anotherPowerUp = generatePossiblePowerUp(anotherLane, block, gameState);
+        if (comparePowerUp(curPowerUp, anotherPowerUp)) {
+          return 0;
+        }
       }
     }
     return direction;
@@ -209,6 +298,9 @@ public class Bot {
 
     Lane[] laneList = map.get(lane - 1);
     for (int i = max(block - startBlock, 0); i <= block - startBlock + Bot.maxSpeed; i++) {
+      if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
+        break;
+      }
       if (possiblePowerUp.containsKey(laneList[i].terrain)) {
         curVal = possiblePowerUp.get(laneList[i].terrain);
         possiblePowerUp.put(laneList[i].terrain, curVal + 1);
@@ -224,9 +316,11 @@ public class Bot {
     List<Lane[]> map = gameState.lanes;
     int startBlock = map.get(0)[0].position.block;
     int curPoint = 0;
-
     Lane[] laneList = map.get(lane - 1);
     for (int i = max(block - startBlock, 0); i <= block - startBlock + Bot.maxSpeed; i++) {
+      if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
+        break;
+      }
       if (points.containsKey(laneList[i].terrain)) {
         curPoint += points.get(laneList[i].terrain);
       }
@@ -241,6 +335,9 @@ public class Bot {
 
     Lane[] laneList = map.get(lane - 1);
     for (int i = max(block - startBlock, 0); i <= block - startBlock + Bot.maxSpeed; i++) {
+      if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
+        break;
+      }
       if (laneList[i].terrain == Terrain.EMPTY) {
         emptyCounts++;
       }
@@ -256,6 +353,9 @@ public class Bot {
 
     Lane[] laneList = map.get(lane - 1);
     for (int i = max(block - startBlock, 0); i <= block - startBlock + Bot.maxSpeed; i++) {
+      if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
+        break;
+      }
       for (Terrain t : listBlockable) {
         if (laneList[i].terrain == t) {
           blockerCounts++;
@@ -273,6 +373,9 @@ public class Bot {
 
     Lane[] laneList = map.get(lane - 1);
     for (int i = max(block - startBlock, 0); i <= block - startBlock + Bot.maxSpeed; i++) {
+      if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
+        break;
+      }
       for (Terrain t : listPowerup) {
         if (laneList[i].terrain == t) {
           powerUpsCount++;
@@ -308,6 +411,7 @@ public class Bot {
       }
 
       blocks.add(laneList[i].terrain);
+      blocks.add(laneList[i].isOccupiedByCyberTruck);
 
     }
     return blocks;
