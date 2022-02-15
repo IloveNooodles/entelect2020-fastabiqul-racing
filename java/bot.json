@@ -1,8 +1,0 @@
-{
-  "author": "FASTabiqul-racing",
-  "email": "John.Doe@example.com",
-  "nickName": "FASTabiqul-bot",
-  "botLocation": "/target",
-  "botFileName": "gare-bot-jar-with-dependencies.jar",
-  "botLanguage": "java"
-}
