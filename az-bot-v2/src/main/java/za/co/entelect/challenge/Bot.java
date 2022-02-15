@@ -56,7 +56,7 @@ public class Bot {
     Boolean canForward = canMove(myCarLane, myCarBlock, myCarSpeed, opponent, gameState);
     Boolean canAccelerate = canMove(myCarLane, myCarBlock, myCarSpeed + 2, opponent, gameState) && (myCar.damage <= 1)
         && (myCarSpeed < this.maxSpeed);
-    Boolean endGame = myCarBlock >= 1350;
+    Boolean endGame = myCarBlock >= 1300;
 
     Boolean hasLizard = hasPowerUp(PowerUps.LIZARD, myCar.powerups);
     int countLizard = countPowerUp(PowerUps.LIZARD, myCar.powerups);
@@ -106,7 +106,7 @@ public class Bot {
     }
     /* Prio use emp if losing */
     if ((hasPowerUp(PowerUps.EMP, myCar.powerups))
-        && ((opponentBlock > myCarBlock + 100) || (opponentSpeed == 15))
+        && ((opponentBlock > myCarBlock + 50) || (opponentSpeed == 15))
         && (opponentBlock > myCarBlock)
         && (canForward) && (Math.abs(opponentLane - myCarLane) <= 1)) {
       return EMP;
