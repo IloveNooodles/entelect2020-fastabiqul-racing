@@ -1,0 +1,10 @@
+======================================================================================================
+round:179
+player: id:1 position: y:4 x:1494 speed:3 state:HIT_EMP statesThatOccurredThisRound:TURNING_LEFT, HIT_EMP boosting:false boost-counter:0 damage:0 score:300 powerups: OIL:10, EMP:3, TWEET:9
+opponent: id:2 position: y:3 x:1486 speed:15
+
+[????????????]
+[?#??????????]
+[?????????*??]
+[?????1??????]
+======================================================================================================
