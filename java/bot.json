@@ -1,8 +1,8 @@
 {
-	"author": "John Doe",
-	"email": "John.Doe@example.com",
-	"nickName": "FASTabiqul",
-	"botLocation": "/target",
-	"botFileName": "java-reference-bot-jar-with-dependencies.jar",
-	"botLanguage": "java"
+  "author": "FASTabiqul-racing",
+  "email": "John.Doe@example.com",
+  "nickName": "FASTabiqul-bot",
+  "botLocation": "/target",
+  "botFileName": "gare-bot-jar-with-dependencies.jar",
+  "botLanguage": "java"
 }
