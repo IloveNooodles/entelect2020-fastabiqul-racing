@@ -157,7 +157,7 @@ public class Bot {
     }
     /* boost number 1 */
     if ((hasBoost)
-        && (myCarSpeed <= 8 || countBoost > 2)
+        && (myCarSpeed <= 8 || countBoost >= 2)
         && (canForwardFar == 0)) {
       if (myCar.damage != 0) {
         return FIX;
