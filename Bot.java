@@ -100,15 +100,15 @@ public class Bot {
       return ACCELERATE;
     /* endgame mode : prio speed but still turn right and left */
     if (endGame) {
-      if(boosting && hasLizard && !lastBlocked)
-        return LIZARD;
-      ){
-      /* EMP if losing in endgame */
       if ((hasEMP)
           && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage]
           && (Math.abs(opponentLane - myCarLane) <= 1) && canForward == 0) {
         return EMP;
       }
+      if(boosting && hasLizard && !lastBlocked)
+        return LIZARD;
+      ){
+      /* EMP if losing in endgame */
       if (myCarBlock >= 1485 && hasBoost && myCar.damage == 0 && canForwardFar < 2)
         return BOOST;
       if ((hasBoost) && (!boosting) && (canForwardFar == 0)) {
