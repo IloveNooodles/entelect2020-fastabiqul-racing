@@ -98,11 +98,11 @@ public class Bot {
     if (endGame) {
 	  /* EMP if losing in endgame */
       if ((hasEMP)
-          && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage] && (Math.abs(opponentLane - myCarLane) <= 1) && canForward <= 1) {
+          && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage] && (Math.abs(opponentLane - myCarLane) <= 1) && canForward == 0) {
         return EMP;
       }
-	  if (myCarBlock >= 1485 && hasBoost && myCar.damage == 0 && canForwardFar < 3) return BOOST;
-      if ((hasBoost) && (!boosting) && (canForwardFar < 2)) {
+	  if (myCarBlock >= 1485 && hasBoost && myCar.damage == 0 && canForwardFar < 2) return BOOST;
+      if ((hasBoost) && (!boosting) && (canForwardFar == 0)) {
         if (myCar.damage != 0) return FIX;
 		return BOOST;
       }
@@ -120,7 +120,7 @@ public class Bot {
 	  
 	  if (canAccelerate) return ACCELERATE;
 	  /* use Powerup */
-	  if (canForward < 2) {
+	  if (canForward == 0) {
         if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
             && (opponentBlock < myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
@@ -140,25 +140,25 @@ public class Bot {
 		  return TWEET;
 		}
       }
-	  if (canForward > 1 && canForward == canForwardFar && hasLizard && !lastBlocked){
+	  if (canForward > 0 && canForward == canForwardFar && hasLizard && !lastBlocked){
           return LIZARD;
 	  }
 	  return bestLane;
     }
 	/* Boost while min speed */
-	if (myCarSpeed <= 3 && hasBoost && myCar.damage == 0 && canForwardFar < 2) return BOOST;
+	if (myCarSpeed <= 3 && hasBoost && myCar.damage == 0 && canForwardFar == 0) return BOOST;
     if (myCarSpeed <= 3 && canAccelerate) return ACCELERATE;
     /* Prio use emp if losing */
     if ((hasEMP)
         && ((opponentBlock > myCarBlock + 20) || (opponentSpeed > myCarSpeed))
         && (opponentBlock > myCarBlock) && (myCarSpeed >= 6)
-        && (canForward < 2) && (Math.abs(opponentLane - myCarLane) <= 1)) {
+        && (canForward == 0) && (Math.abs(opponentLane - myCarLane) <= 1)) {
       return EMP;
     }
     /* boost number 1 */
     if ((hasBoost)
         && (myCarSpeed <= 8 || countBoost > 2)
-        && (canForwardFar < 2)) {
+        && (canForwardFar == 0)) {
       if (myCar.damage != 0) {
         return FIX;
       }
@@ -166,7 +166,7 @@ public class Bot {
     }
     /* Prio take boost */
     if (containBoost(blocksFront)) {
-      if (canForward < 2) {
+      if (canForward == 0) {
         if (canAccelerate) {
           return ACCELERATE;
         }
@@ -195,17 +195,17 @@ public class Bot {
         && (countLizard >= 3)) {
         return LIZARD;
 	  }
-	  if (canForward <= 2 && lastBlocked) return DECELERATE;
+	  if (canForward <= 1 && lastBlocked) return DECELERATE;
     }
 	if (containBoost(blocksRight) && canRight < canLeft) {
       return TURN_RIGHT;
     }
-    if (containBoost(blocksLeft) && canLeft < 2) {
+    if (containBoost(blocksLeft) && canLeft == 0) {
       return TURN_LEFT;
     }
     /* Prio take emp */
     if (containEmp(blocksFront)) {
-      if (canForward < 2) {
+      if (canForward == 0) {
         if (canAccelerate) {
           return ACCELERATE;
         }
@@ -234,12 +234,12 @@ public class Bot {
         && (countLizard >= 3)) {
 		return LIZARD;
 	  }
-	  if (canForward <= 2 && lastBlocked) return DECELERATE;
+	  if (canForward <= 1 && lastBlocked) return DECELERATE;
     }
 	if (containEmp(blocksRight) && canRight < canLeft) {
       return TURN_RIGHT;
     }
-    if (containEmp(blocksLeft) && canLeft < 2) {
+    if (containEmp(blocksLeft) && canLeft == 0) {
       return TURN_LEFT;
     }
 	/* Lane prio, harus di tengah */
@@ -262,7 +262,7 @@ public class Bot {
     }
 	/* while fullspeed and no-blocker*/
 	/* use powerup */
-	if (canForward < 2) {
+	if (canForward == 0) {
       if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
           && (opponentBlock < myCarBlock)
           && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))){
@@ -292,15 +292,15 @@ public class Bot {
 	if (containPowerUps(blocksRight) && canRight < canLeft) {
       return TURN_RIGHT;
     }
-    if (containPowerUps(blocksLeft) && canLeft < 2) {
+    if (containPowerUps(blocksLeft) && canLeft == 0) {
       return TURN_LEFT;
     }
 	/* fix / do nothing */
-	if (canForward < 2) {
+	if (canForward == 0) {
 	  if(myCar.damage > 0) return FIX;
       return SKIP;
 	}
-	if (canForward >= 2) return bestLane;
+	if (canForward > 0) return bestLane;
 	/* if cant do anything */
 	if (hasLizard && !lastBlocked) {
       return LIZARD;
@@ -312,19 +312,19 @@ public class Bot {
 	if (containBoost(blocksRightFar) && canRightFar < canLeftFar) {
       return TURN_RIGHT;
     }
-    if (containBoost(blocksLeftFar) && canLeftFar < 2) {
+    if (containBoost(blocksLeftFar) && canLeftFar == 0) {
       return TURN_LEFT;
     }
 	if (containEmp(blocksRightFar) && canRightFar < canLeftFar) {
       return TURN_RIGHT;
     }
-    if (containEmp(blocksLeftFar) && canLeftFar < 2) {
+    if (containEmp(blocksLeftFar) && canLeftFar == 0) {
       return TURN_LEFT;
     }
     if (containPowerUps(blocksRightFar) && canRightFar < canLeftFar) {
       return TURN_RIGHT;
     }
-    if (containPowerUps(blocksLeftFar) && canLeftFar < 2) {
+    if (containPowerUps(blocksLeftFar) && canLeftFar == 0) {
       return TURN_LEFT;
     }
     return bestLane;
@@ -387,13 +387,12 @@ public class Bot {
       if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
         break;
       }
-	  if (laneList[i].occupiedByPlayerId == opponent.id) sum++;
       if ((laneList[i].terrain == Terrain.MUD)
           || (laneList[i].terrain == Terrain.OIL_SPILL)){
-        sum += 2;
+        sum += 1;
       }
-	  if (laneList[i].terrain == Terrain.WALL) sum += 3;
-	  if (laneList[i].isOccupiedByCyberTruck == true) sum += 5; //karena ngestuck > 2 wall dsb
+	  if (laneList[i].terrain == Terrain.WALL) sum += 2;
+	  if (laneList[i].isOccupiedByCyberTruck == true) sum += 4; //karena ngestuck > 2 wall dsb
 	}
     return sum;
   }
