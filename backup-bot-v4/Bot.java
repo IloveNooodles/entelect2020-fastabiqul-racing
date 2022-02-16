@@ -91,6 +91,7 @@ public class Bot {
     Terrain listPowerUps[] = { Terrain.BOOST, Terrain.EMP, Terrain.LIZARD, Terrain.TWEET, Terrain.OIL_POWER };
 
     /* if cant move */
+    System.out.println("0");
     if (myCar.damage >= 3) {
       if (myCarSpeed < listSpeed[myCar.damage] && canAccelerate)
         return ACCELERATE;
@@ -99,6 +100,7 @@ public class Bot {
     if (myCarSpeed == 0)
       return ACCELERATE;
     /* endgame mode : prio speed but still turn right and left */
+    System.out.println("1");
     if (endGame) {
       /* EMP if losing in endgame */
       if ((hasEMP)
@@ -156,6 +158,7 @@ public class Bot {
       }
       return bestLane;
     }
+    System.out.println("2");
     /* Boost while min speed */
     if (myCarSpeed <= 3 && hasBoost && myCar.damage == 0 && canForwardFar == 0)
       return BOOST;
@@ -169,7 +172,7 @@ public class Bot {
       return EMP;
     }
     /* boost number 1 */
-    if ((hasBoost && !boosting)
+    if ((hasBoost)
         && (myCarSpeed <= 8 || countBoost >= 2)
         && (canForwardFar == 0)) {
       if (myCar.damage != 0) {
@@ -178,6 +181,7 @@ public class Bot {
       return BOOST;
     }
     /* Prio take boost */
+    System.out.println("3");
     if (containBoost(blocksFront)) {
       if (canForward == 0) {
         if (canAccelerate) {
@@ -210,13 +214,14 @@ public class Bot {
       if (canForward <= 1 && lastBlocked)
         return DECELERATE;
     }
-    if (containBoost(blocksRight) && canRight < canLeft) {
+    if (containBoost(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containBoost(blocksLeft) && canLeft == 0) {
+    if (containBoost(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* Prio take emp */
+    System.out.println("4");
     if (containEmp(blocksFront)) {
       if (canForward == 0) {
         if (canAccelerate) {
@@ -249,10 +254,10 @@ public class Bot {
       if (canForward <= 1 && lastBlocked)
         return DECELERATE;
     }
-    if (containEmp(blocksRight) && canRight < canLeft) {
+    if (containEmp(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containEmp(blocksLeft) && canLeft == 0) {
+    if (containEmp(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* Lane prio, harus di tengah */
@@ -268,6 +273,7 @@ public class Bot {
     }
     /* while fullspeed and no-blocker */
     /* use powerup */
+    System.out.println("5");
     if (canForward == 0) {
       if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
           && (opponentBlock < myCarBlock)
@@ -289,18 +295,20 @@ public class Bot {
       }
     }
     /* Prio pickup powerup */
+    System.out.println("6");
     if (containPowerUps(blocksFront)) {
       if ((hasLizard) && (!lastBlocked)
-          && (countLizard >= 3) && canForward > 0) {
+          && (countLizard >= 3)) {
         return LIZARD;
       }
     }
-    if (containPowerUps(blocksRight) && canRight < canLeft) {
+    if (containPowerUps(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containPowerUps(blocksLeft) && canLeft == 0) {
+    if (containPowerUps(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
+    System.out.println("7");
     /* fix / do nothing */
     if (canForward == 0) {
       return SKIP;
@@ -333,6 +341,7 @@ public class Bot {
     if (containPowerUps(blocksLeftFar) && canLeftFar == 0) {
       return TURN_LEFT;
     }
+    System.out.println("8");
     return bestLane;
   }
 
@@ -398,9 +407,9 @@ public class Bot {
         sum += 1;
       }
       if (laneList[i].terrain == Terrain.WALL)
-        sum += 3;
+        sum += 4;
       if (laneList[i].isOccupiedByCyberTruck == true)
-        sum += 3; // karena ngestuck > 2 wall dsb
+        sum += 4; // karena ngestuck > 2 wall dsb
     }
     return sum;
   }
