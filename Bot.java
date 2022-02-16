@@ -121,7 +121,7 @@ public class Bot {
 	  if (canAccelerate) return ACCELERATE;
 	  /* use Powerup */
 	  if (canForward < 2) {
-        if ((hasOil)
+        if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
             && (opponentBlock < myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
           return OIL;
@@ -170,7 +170,7 @@ public class Bot {
         if (canAccelerate) {
           return ACCELERATE;
         }
-        if ((hasOil)
+        if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
             && (opponentBlock < myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
           return OIL;
@@ -209,7 +209,7 @@ public class Bot {
         if (canAccelerate) {
           return ACCELERATE;
         }
-        if ((hasOil)
+        if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
             && (opponentBlock < myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
           return OIL;
@@ -263,7 +263,7 @@ public class Bot {
 	/* while fullspeed and no-blocker*/
 	/* use powerup */
 	if (canForward < 2) {
-      if ((hasOil)
+      if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
           && (opponentBlock < myCarBlock)
           && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))){
         return OIL;
