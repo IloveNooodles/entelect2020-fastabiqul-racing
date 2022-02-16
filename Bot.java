@@ -27,16 +27,6 @@ public class Bot {
   }
 
   public Command run(GameState gameState) {
-    // YANG BELUM DICOVER
-    // HUBUNGAN ANTARA MAX SPEED AMA DAMAGE -> BIAR BISA MAX SPEED TERUS DI DMG
-    // TERTENTU SEBELUM AKHIRNYA FIX
-    // BIKIN DETECTOR BLOCK NY JADI BISA LIAT JUMLAH BLOCKER, BUKAN CUMA SEKEDAR TAU
-    // ADA ATAU GA
-    // NENTUIN BEST CHOICE KALO SEMUA LANE PUNYA BLOCKER (BERHUBUNGAN SAMA POIN
-    // ATAS)
-    // NENTUIN LAST BLOCK BUAT NEXT ROUND (BLOCK SKRG + SPEED) ADA BLOCKER ATAU GA
-    // -> BIAR USE LIZARD LEBIH MAKSIMAL0
-    // UPGRADE POWERUP USAGE BIAR EFEKTIF
     Car myCar = gameState.player;
     Car opponent = gameState.opponent;
     int myCarLane = myCar.position.lane;
@@ -45,25 +35,23 @@ public class Bot {
     int opponentLane = opponent.position.lane;
     int opponentBlock = opponent.position.block;
     int opponentSpeed = opponent.speed;
-    Boolean boosting = myCar.boostCounter > 1;
+	List<Lane[]> map = gameState.lanes;
+    int startBlock = map.get(0)[0].position.block;
+	int currentBlock = myCarBlock - startBlock;
+    Boolean boosting = myCar.boostCounter > 0;
+	Command TWEET;
 
-    List<Object> blocksFront;
-    if (myCar.boostCounter == 1)
-      blocksFront = getBlocks(myCarLane, myCarBlock, 9, gameState);
-    else
-      blocksFront = getBlocks(myCarLane, myCarBlock, myCarSpeed, gameState);
-    List<Object> blocksFrontFar = getBlocks(myCarLane, myCarBlock, 15, gameState);
+    List<Object> blocksFront = getBlocks(myCarLane, myCarBlock+1, myCarSpeed, gameState);
+    List<Object> blocksFrontFar = getBlocks(myCarLane, myCarBlock+1, 15, gameState);
     List<Object> blocksRight = getBlocks(myCarLane + 1, myCarBlock, myCarSpeed, gameState);
     List<Object> blocksRightFar = getBlocks(myCarLane + 1, myCarBlock, 15, gameState);
     List<Object> blocksLeft = getBlocks(myCarLane - 1, myCarBlock, myCarSpeed, gameState);
     List<Object> blocksLeftFar = getBlocks(myCarLane - 1, myCarBlock, 15, gameState);
 
-    // speed ditambah biar sedikit melihat lebih jauh
-    // carblock front ditambah biar block sekarang gaikut diitung
-    int canRight = canMove(myCarLane + 1, myCarBlock, myCarSpeed - 1, opponent, gameState);
-    int canRightFar = canMove(myCarLane + 1, myCarBlock, 14, opponent, gameState);
-    int canLeft = canMove(myCarLane - 1, myCarBlock, myCarSpeed - 1, opponent, gameState);
-    int canLeftFar = canMove(myCarLane - 1, myCarBlock, 14, opponent, gameState);
+    int canRight = canMove(myCarLane + 1, myCarBlock, myCarSpeed, opponent, gameState);
+    int canRightFar = canMove(myCarLane + 1, myCarBlock, 15, opponent, gameState);
+    int canLeft = canMove(myCarLane - 1, myCarBlock, myCarSpeed, opponent, gameState);
+    int canLeftFar = canMove(myCarLane - 1, myCarBlock, 15, opponent, gameState);
     int canForward = canMove(myCarLane, myCarBlock + 1, myCarSpeed, opponent, gameState);
     int canForwardFar = canMove(myCarLane, myCarBlock + 1, 15, opponent, gameState);
     Command bestLane = compareLane(canForward, canLeft, canRight, myCarLane);
@@ -77,19 +65,27 @@ public class Bot {
     Boolean hasTweet = hasPowerUp(PowerUps.TWEET, myCar.powerups);
     int countLizard = countPowerUp(PowerUps.LIZARD, myCar.powerups);
     int countBoost = countPowerUp(PowerUps.BOOST, myCar.powerups);
+	int countOil = countPowerUp(PowerUps.OIL, myCar.powerups);
+	int countTweet = countPowerUp(PowerUps.TWEET, myCar.powerups);
 
     int listSpeed[] = { 9, 9, 8, 6, 3, 0 }; // from damage 0 to 5
-    int listDamage[] = { 1, 1, 2, 2 }; // MUD OIL WALL CYBERTRUC
     Boolean canAccelerate = canMove(myCarLane, myCarBlock, myCarSpeed + 2, opponent, gameState) == 0
         && (myCarSpeed < listSpeed[myCar.damage]);
-
-    Terrain listBlocker[] = { Terrain.MUD, Terrain.WALL, Terrain.OIL_SPILL }; // MUD OIL WALL
-    Boolean lastBlocked = blocksFront.get(blocksFront.size() - 1) == Terrain.MUD
+	
+	int idxBlock;
+	if (myCarBlock+myCarSpeed > 1500) {
+		idxBlock = 1500 - startBlock;
+	}
+	else {
+		idxBlock = currentBlock + myCarSpeed;
+	}
+	Boolean lastBlocked = false;
+	if (blocksFront.size() > 0){
+    lastBlocked = blocksFront.get(blocksFront.size() - 1) == Terrain.MUD
         || blocksFront.get(blocksFront.size() - 1) == Terrain.WALL
-        || blocksFront.get(blocksFront.size() - 1) == Terrain.OIL_SPILL;
-
-    Terrain listPowerUps[] = { Terrain.BOOST, Terrain.EMP, Terrain.LIZARD, Terrain.TWEET, Terrain.OIL_POWER };
-
+        || blocksFront.get(blocksFront.size() - 1) == Terrain.OIL_SPILL
+		|| map.get(myCarLane-1)[idxBlock-1].isOccupiedByCyberTruck == true;
+	}
     /* if cant move */
     if (myCar.damage >= 3) {
       if (myCarSpeed < listSpeed[myCar.damage] && canAccelerate)
@@ -100,15 +96,14 @@ public class Bot {
       return ACCELERATE;
     /* endgame mode : prio speed but still turn right and left */
     if (endGame) {
-      if ((hasEMP)
-          && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage]
+	/* EMP if losing in endgame */
+      if ((hasEMP) && (myCarLane != opponentLane || myCarBlock + myCarSpeed <= opponentBlock)
+          && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage+1]
           && (Math.abs(opponentLane - myCarLane) <= 1) && canForward == 0) {
         return EMP;
       }
       if(boosting && hasLizard && !lastBlocked)
         return LIZARD;
-      
-      /* EMP if losing in endgame */
       if (myCarBlock >= 1485 && hasBoost && myCar.damage == 0 && canForwardFar < 2)
         return BOOST;
       if ((hasBoost) && (!boosting) && (canForwardFar == 0)) {
@@ -120,62 +115,67 @@ public class Bot {
         return ACCELERATE;
       if (containBoost(blocksFront) && canForward == 0) {
         if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
-            && (opponentBlock < myCarBlock)
+            && (opponentBlock <= myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
           return OIL;
         }
         if ((hasTweet)
             && (myCarLane != opponentLane || opponentSpeed >= 8)) {
-          if (opponentLane == 1) {
-            Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
+          if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           }
-          if (opponentLane == 4) {
-            Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
-          }
-          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
+		if (countOil > 3 && myCarBlock >= opponentBlock) return OIL;
+		if (countTweet > 3 && myCarBlock < opponentBlock){
+		  if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
+          }
+          return TWEET;
+		}
         return SKIP;
       }
       if (containBoost(blocksRight) && canRight == 0)
         return TURN_RIGHT;
       if (containBoost(blocksLeft) && canLeft == 0)
         return TURN_LEFT;
-
       if (canAccelerate)
         return ACCELERATE;
       /* use Powerup */
       if (canForward == 0) {
         if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
-            && (opponentBlock < myCarBlock)
+            && (opponentBlock <= myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
           return OIL;
         }
         if ((hasTweet)
             && (myCarLane != opponentLane || opponentSpeed >= 8)) {
-          if (opponentLane == 1) {
-            Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
+          if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           }
-          if (opponentLane == 4) {
-            Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
-          }
-          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
       }
       if (canForward > 0 && canForward == canForwardFar && hasLizard && !lastBlocked) {
         return LIZARD;
       }
+	  if (canRight == 0) return TURN_RIGHT;
+	  if (canLeft == 0) return TURN_LEFT;
       return bestLane;
     }
     /* Boost while min speed */
     if (myCarSpeed <= 3 && hasBoost && myCar.damage == 0 && canForwardFar == 0)
       return BOOST;
-    if (myCarSpeed <= 3 && canAccelerate)
+    if (myCarSpeed <= 5 && canAccelerate)
       return ACCELERATE;
     /* Prio use emp if losing */
     if ((hasEMP)
@@ -185,8 +185,7 @@ public class Bot {
       return EMP;
     }
     /* boost number 1 */
-    if ((hasBoost)
-        && (myCarSpeed <= 8 || countBoost >= 2)
+    if ((hasBoost && !boosting)
         && (canForwardFar == 0)) {
       if (myCar.damage != 0) {
         return FIX;
@@ -200,36 +199,43 @@ public class Bot {
           return ACCELERATE;
         }
         if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
-            && (opponentBlock < myCarBlock)
+            && (opponentBlock <= myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
           return OIL;
         }
         if ((hasTweet)
             && (myCarLane != opponentLane || opponentSpeed >= 8)) {
-          if (opponentLane == 1) {
-            Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
+          if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           }
-          if (opponentLane == 4) {
-            Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
-          }
-          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
+		if (countOil > 3) return OIL;
+		if (countTweet > 3 && myCarLane != opponentLane){
+		  if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
+          }
+          return TWEET;
+		}
         return SKIP;
       }
       if ((hasLizard) && (!lastBlocked)
-          && (countLizard >= 3)) {
+          && (countLizard > 1)) {
         return LIZARD;
       }
-      if (canForward <= 1 && lastBlocked)
-        return DECELERATE;
     }
-    if (containBoost(blocksRight) && canRight <= canForward) {
+    if ((containBoost(blocksRight))
+		&& ((canRight == 0)||(canRight <= canForward && canRight <= canLeft && !hasLizard))) {
       return TURN_RIGHT;
     }
-    if (containBoost(blocksLeft) && canLeft <= canForward) {
+    if ((containBoost(blocksLeft))
+		&& ((canLeft == 0)||(canLeft <= canForward && canLeft <= canRight && !hasLizard))) {
       return TURN_LEFT;
     }
     /* Prio take emp */
@@ -239,36 +245,43 @@ public class Bot {
           return ACCELERATE;
         }
         if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
-            && (opponentBlock < myCarBlock)
+            && (opponentBlock <= myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
           return OIL;
         }
         if ((hasTweet)
             && (myCarLane != opponentLane || opponentSpeed >= 8)) {
-          if (opponentLane == 1) {
-            Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
+          if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           }
-          if (opponentLane == 4) {
-            Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
-            return TWEET;
-          }
-          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
+		if (countOil > 3) return OIL;
+		if (countTweet > 3 && myCarLane != opponentLane){
+		  if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
+          }
+          return TWEET;
+		}
         return SKIP;
       }
       if ((hasLizard) && (!lastBlocked)
-          && (countLizard >= 3)) {
+          && (countLizard > 1)) {
         return LIZARD;
       }
-      if (canForward <= 1 && lastBlocked)
-        return DECELERATE;
     }
-    if (containEmp(blocksRight) && canRight <= canForward) {
+    if ((containEmp(blocksRight))
+		&& ((canRight == 0)||(canRight <= canForward && canRight <= canLeft && !hasLizard))) {
       return TURN_RIGHT;
     }
-    if (containEmp(blocksLeft) && canLeft <= canForward) {
+    if ((containEmp(blocksLeft))
+		&& ((canLeft == 0)||(canLeft <= canForward && canLeft <= canRight && !hasLizard))) {
       return TURN_LEFT;
     }
     /* Lane prio, harus di tengah */
@@ -293,77 +306,103 @@ public class Bot {
     /* use powerup */
     if (canForward == 0) {
       if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
-          && (opponentBlock < myCarBlock)
+          && (opponentBlock <= myCarBlock)
           && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
         return OIL;
       }
       if ((hasTweet)
           && (myCarLane != opponentLane || opponentSpeed >= 8)) {
-        if (opponentLane == 1) {
-          Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
-          return TWEET;
+        if(opponentBlock>=1490){
+		  TWEET = new TweetCommand(opponentLane, 1500);
+		}
+		else{
+		  TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
         }
-        if (opponentLane == 4) {
-          Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
-          return TWEET;
-        }
-        Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
         return TWEET;
       }
+	  if (countOil > 3) return OIL;
+	  if (countTweet > 3 && myCarLane != opponentLane){
+		if(opponentBlock>=1490){
+		  TWEET = new TweetCommand(opponentLane, 1500);
+		}
+		else{
+		  TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
+        }
+        return TWEET;
+	  }
     }
     /* Prio pickup powerup */
     if (containPowerUps(blocksFront)) {
       if ((hasLizard) && (!lastBlocked)
-          && (countLizard >= 3)) {
+          && (countLizard > 1)) {
         return LIZARD;
       }
       if (canForward == 0) {
+		if (countOil > 3) return OIL;
+		if (countTweet > 3 && myCarLane != opponentLane){
+		  if(opponentBlock>=1490){
+			TWEET = new TweetCommand(opponentLane, 1500);
+		  }
+		  else{
+			TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
+          }
+		  return TWEET;
+		}
         return SKIP;
       }
     }
-    if (containPowerUps(blocksRight) && canRight <= canForward) {
+    if ((containPowerUps(blocksRight))
+		&& ((canRight == 0)||(canRight <= canForward && canRight <= canLeft && !hasLizard))) {
       return TURN_RIGHT;
     }
-    if (containPowerUps(blocksLeft) && canLeft <= canForward) {
+    if ((containPowerUps(blocksLeft))
+		&& ((canLeft == 0)||(canLeft <= canForward && canLeft <= canRight && !hasLizard))) {
       return TURN_LEFT;
     }
     /* fix / do nothing */
     if (canForward == 0) {
-      if (myCar.damage > 0)
-        return FIX;
+	  if (countOil > 3) return OIL;
+	  if (countTweet > 3 && myCarLane != opponentLane){
+		if(opponentBlock>=1490){
+		  TWEET = new TweetCommand(opponentLane, 1500);
+		}
+		else{
+		  TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
+        }
+        return TWEET;
+	  }
       return SKIP;
     }
-    if (canForward > 0)
+    if (canForward > 0 && (canRight == 0 || canLeft == 0))
       return bestLane;
     /* if cant do anything */
     if (hasLizard && !lastBlocked) {
       return LIZARD;
     }
-    if (myCarSpeed >= 6 && canMove(myCarLane, myCarBlock + 1, myCarSpeed - 2, opponent, gameState) < 2) {
-      return DECELERATE;
-    }
     /* Prio take powerup on far side */
-    if (containBoost(blocksRightFar) && canRightFar < canLeftFar) {
+    if (containBoost(blocksRightFar) && canRightFar <= canForwardFar && canRightFar <= canLeftFar) {
       return TURN_RIGHT;
     }
-    if (containBoost(blocksLeftFar) && canLeftFar == 0) {
+    if (containBoost(blocksLeftFar) && canLeftFar <= canForwardFar && canLeftFar <= canRightFar) {
       return TURN_LEFT;
     }
-    if (containEmp(blocksRightFar) && canRightFar < canLeftFar) {
+    if (containEmp(blocksRightFar) && canRightFar <= canForwardFar && canRightFar <= canLeftFar) {
       return TURN_RIGHT;
     }
-    if (containEmp(blocksLeftFar) && canLeftFar == 0) {
+    if (containEmp(blocksLeftFar) && canLeftFar <= canForwardFar && canLeftFar <= canRightFar) {
       return TURN_LEFT;
     }
-    if (containPowerUps(blocksRightFar) && canRightFar < canLeftFar) {
+    if (containPowerUps(blocksRightFar) && canRightFar <= canForwardFar && canRightFar <= canLeftFar) {
       return TURN_RIGHT;
     }
-    if (containPowerUps(blocksLeftFar) && canLeftFar == 0) {
+    if (containPowerUps(blocksLeftFar) && canLeftFar <= canForwardFar && canLeftFar <= canRightFar) {
       return TURN_LEFT;
+    }
+	if (myCarSpeed >= 6 && canMove(myCarLane, myCarBlock + 1, myCarSpeed - 2, opponent, gameState) < 2) {
+      return DECELERATE;
     }
     return bestLane;
   }
-
   private Boolean hasPowerUp(PowerUps powerUpToCheck, PowerUps[] available) {
     for (PowerUps powerUp : available) {
       if (powerUp.equals(powerUpToCheck)) {
@@ -421,14 +460,14 @@ public class Bot {
       if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
         break;
       }
-      if ((laneList[i].terrain == Terrain.MUD)
+	  if (laneList[i].isOccupiedByCyberTruck == true)
+        sum += 4; // karena ngestuck > 2 wall dsb
+	  else if (laneList[i].terrain == Terrain.WALL)
+        sum += 3;
+      else if ((laneList[i].terrain == Terrain.MUD)
           || (laneList[i].terrain == Terrain.OIL_SPILL)) {
         sum += 1;
       }
-      if (laneList[i].terrain == Terrain.WALL)
-        sum += 2;
-      if (laneList[i].isOccupiedByCyberTruck == true)
-        sum += 4; // karena ngestuck > 2 wall dsb
     }
     return sum;
   }

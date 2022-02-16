@@ -57,6 +57,7 @@ public class Bot {
     List<Object> blocksRightFar = getBlocks(myCarLane + 1, myCarBlock, 15, gameState);
     List<Object> blocksLeft = getBlocks(myCarLane - 1, myCarBlock, myCarSpeed, gameState);
     List<Object> blocksLeftFar = getBlocks(myCarLane - 1, myCarBlock, 15, gameState);
+    List<Object> nextBlocks = blocksFront.subList(0, 1);
 
     // speed ditambah biar sedikit melihat lebih jauh
     // carblock front ditambah biar block sekarang gaikut diitung
@@ -104,6 +105,7 @@ public class Bot {
       if ((hasEMP)
           && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage]
           && (Math.abs(opponentLane - myCarLane) <= 1) && canForward == 0) {
+        
         return EMP;
       }
       if (myCarBlock >= 1485 && hasBoost && myCar.damage == 0 && canForwardFar < 2)
