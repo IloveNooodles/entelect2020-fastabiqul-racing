@@ -60,11 +60,11 @@ public class Bot {
 
     // speed ditambah biar sedikit melihat lebih jauh
     // carblock front ditambah biar block sekarang gaikut diitung
-    int canRight = canMove(myCarLane + 1, myCarBlock, myCarSpeed, opponent, gameState);
+    int canRight = canMove(myCarLane + 1, myCarBlock, myCarSpeed - 1, opponent, gameState);
     int canRightFar = canMove(myCarLane + 1, myCarBlock, 14, opponent, gameState);
-    int canLeft = canMove(myCarLane - 1, myCarBlock, myCarSpeed, opponent, gameState);
+    int canLeft = canMove(myCarLane - 1, myCarBlock, myCarSpeed - 1, opponent, gameState);
     int canLeftFar = canMove(myCarLane - 1, myCarBlock, 14, opponent, gameState);
-    int canForward = canMove(myCarLane, myCarBlock + 1, myCarSpeed + 1, opponent, gameState);
+    int canForward = canMove(myCarLane, myCarBlock + 1, myCarSpeed, opponent, gameState);
     int canForwardFar = canMove(myCarLane, myCarBlock + 1, 15, opponent, gameState);
     Command bestLane = compareLane(canForward, canLeft, canRight, myCarLane);
 
@@ -100,6 +100,9 @@ public class Bot {
       return ACCELERATE;
     /* endgame mode : prio speed but still turn right and left */
     if (endGame) {
+      if(boosting && hasLizard && !lastBlocked)
+        return LIZARD;
+      ){
       /* EMP if losing in endgame */
       if ((hasEMP)
           && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage]
@@ -113,16 +116,27 @@ public class Bot {
           return FIX;
         return BOOST;
       }
-      if (myCar.damage >= 2) {
-        if (myCarSpeed <= listSpeed[myCar.damage] && canAccelerate)
-          return ACCELERATE;
-        return FIX;
-      }
       if (myCarSpeed <= 3 && canAccelerate)
         return ACCELERATE;
       if (containBoost(blocksFront) && canForward == 0) {
-        if (myCar.damage > 0)
-          return FIX;
+        if ((hasOil) && (Math.abs(opponentLane - myCarLane) <= 1)
+            && (opponentBlock < myCarBlock)
+            && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
+          return OIL;
+        }
+        if ((hasTweet)
+            && (myCarLane != opponentLane || opponentSpeed >= 8)) {
+          if (opponentLane == 1) {
+            Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
+            return TWEET;
+          }
+          if (opponentLane == 4) {
+            Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
+            return TWEET;
+          }
+          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
+          return TWEET;
+        }
         return SKIP;
       }
       if (containBoost(blocksRight) && canRight == 0)
@@ -203,8 +217,6 @@ public class Bot {
           Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
-        if (myCar.damage > 0)
-          return FIX;
         return SKIP;
       }
       if ((hasLizard) && (!lastBlocked)
@@ -214,10 +226,10 @@ public class Bot {
       if (canForward <= 1 && lastBlocked)
         return DECELERATE;
     }
-    if (containBoost(blocksRight) && canRight < canLeft) {
+    if (containBoost(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containBoost(blocksLeft) && canLeft == 0) {
+    if (containBoost(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* Prio take emp */
@@ -244,8 +256,6 @@ public class Bot {
           Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
-        if (myCar.damage > 0)
-          return FIX;
         return SKIP;
       }
       if ((hasLizard) && (!lastBlocked)
@@ -255,10 +265,10 @@ public class Bot {
       if (canForward <= 1 && lastBlocked)
         return DECELERATE;
     }
-    if (containEmp(blocksRight) && canRight < canLeft) {
+    if (containEmp(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containEmp(blocksLeft) && canLeft == 0) {
+    if (containEmp(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* Lane prio, harus di tengah */
@@ -307,12 +317,14 @@ public class Bot {
           && (countLizard >= 3)) {
         return LIZARD;
       }
-      return SKIP;
+      if (canForward == 0) {
+        return SKIP;
+      }
     }
-    if (containPowerUps(blocksRight) && canRight < canLeft) {
+    if (containPowerUps(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containPowerUps(blocksLeft) && canLeft == 0) {
+    if (containPowerUps(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* fix / do nothing */
