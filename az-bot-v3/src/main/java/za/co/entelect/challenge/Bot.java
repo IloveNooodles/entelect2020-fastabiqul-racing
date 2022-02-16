@@ -80,7 +80,7 @@ public class Bot {
 
     int listSpeed[] = { 9, 9, 8, 6, 3, 0 }; // from damage 0 to 5
     int listDamage[] = { 1, 1, 2, 2 }; // MUD OIL WALL CYBERTRUC
-    Boolean canAccelerate = canMove(myCarLane, myCarBlock, myCarSpeed + 2, opponent, gameState) == 0
+    Boolean canAccelerate = canMove(myCarLane, myCarBlock + 1, myCarSpeed + 2, opponent, gameState) == 0
         && (myCarSpeed < listSpeed[myCar.damage]);
 
     Terrain listBlocker[] = { Terrain.MUD, Terrain.WALL, Terrain.OIL_SPILL }; // MUD OIL WALL
@@ -121,8 +121,6 @@ public class Bot {
       if (myCarSpeed <= 3 && canAccelerate)
         return ACCELERATE;
       if (containBoost(blocksFront) && canForward == 0) {
-        if (myCar.damage > 0)
-          return FIX;
         return SKIP;
       }
       if (containBoost(blocksRight) && canRight == 0)
@@ -203,8 +201,6 @@ public class Bot {
           Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
-        if (myCar.damage > 0)
-          return FIX;
         return SKIP;
       }
       if ((hasLizard) && (!lastBlocked)
@@ -214,10 +210,10 @@ public class Bot {
       if (canForward <= 1 && lastBlocked)
         return DECELERATE;
     }
-    if (containBoost(blocksRight) && canRight < canLeft) {
+    if (containBoost(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containBoost(blocksLeft) && canLeft == 0) {
+    if (containBoost(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* Prio take emp */
@@ -244,8 +240,6 @@ public class Bot {
           Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
         }
-        if (myCar.damage > 0)
-          return FIX;
         return SKIP;
       }
       if ((hasLizard) && (!lastBlocked)
@@ -255,10 +249,10 @@ public class Bot {
       if (canForward <= 1 && lastBlocked)
         return DECELERATE;
     }
-    if (containEmp(blocksRight) && canRight < canLeft) {
+    if (containEmp(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containEmp(blocksLeft) && canLeft == 0) {
+    if (containEmp(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* Lane prio, harus di tengah */
@@ -308,16 +302,14 @@ public class Bot {
         return LIZARD;
       }
     }
-    if (containPowerUps(blocksRight) && canRight < canLeft) {
+    if (containPowerUps(blocksRight) && canRight <= canForward) {
       return TURN_RIGHT;
     }
-    if (containPowerUps(blocksLeft) && canLeft == 0) {
+    if (containPowerUps(blocksLeft) && canLeft <= canForward) {
       return TURN_LEFT;
     }
     /* fix / do nothing */
     if (canForward == 0) {
-      if (myCar.damage > 0)
-        return FIX;
       return SKIP;
     }
     if (canForward > 0)
@@ -448,12 +440,18 @@ public class Bot {
     }
   }
 
-  private Command compareLane(int forward, int left, int right, int myCarLane){
-	  if(forward <= left && forward <= right) return ACCELERATE;
-	  if(left == right){
-		if(myCarLane <= 2) return TURN_RIGHT;
-		if(myCarLane > 2) return TURN_LEFT;
-	  }
-	  if(left < right) return TURN_LEFT;
-	  else return TURN_RIGHT;
+  private Command compareLane(int forward, int left, int right, int myCarLane) {
+    if (forward <= left && forward <= right)
+      return ACCELERATE;
+    if (left == right) {
+      if (myCarLane <= 2)
+        return TURN_RIGHT;
+      if (myCarLane > 2)
+        return TURN_LEFT;
+    }
+    if (left < right)
+      return TURN_LEFT;
+    else
+      return TURN_RIGHT;
   }
+}
