@@ -101,7 +101,7 @@ public class Bot {
           && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage] && (Math.abs(opponentLane - myCarLane) <= 1) && canForward <= 1) {
         return EMP;
       }
-	  if (myCarBlock >= 1485 && hasBoost && myCar.damage == 0) return BOOST;
+	  if (myCarBlock >= 1485 && hasBoost && myCar.damage == 0 && canForwardFar < 3) return BOOST;
       if ((hasBoost) && (!boosting) && (canForwardFar < 2)) {
         if (myCar.damage != 0) return FIX;
 		return BOOST;
@@ -127,7 +127,7 @@ public class Bot {
           return OIL;
         }
         if ((hasTweet)
-          && (myCarLane != opponentLane)) {
+          && (myCarLane != opponentLane || opponentSpeed >= 8)) {
 		  if (opponentLane == 1){
 			Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
             return TWEET;
@@ -136,7 +136,7 @@ public class Bot {
 			Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
             return TWEET;
 		  }
-		  Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 2);
+		  Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
 		  return TWEET;
 		}
       }
@@ -176,7 +176,7 @@ public class Bot {
           return OIL;
         }
         if ((hasTweet)
-          && (myCarLane != opponentLane)) {
+          && (myCarLane != opponentLane || opponentSpeed >= 8)) {
 		  if (opponentLane == 1){
 			Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
             return TWEET;
@@ -185,7 +185,7 @@ public class Bot {
 			Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
             return TWEET;
 		  }
-          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 2);
+          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
 		}
 		if(myCar.damage > 0) return FIX;
@@ -215,7 +215,7 @@ public class Bot {
           return OIL;
         }
         if ((hasTweet)
-          && (myCarLane != opponentLane)) {
+          && (myCarLane != opponentLane || opponentSpeed >= 8)) {
 		  if (opponentLane == 1){
 			Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
             return TWEET;
@@ -224,7 +224,7 @@ public class Bot {
 			Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
             return TWEET;
 		  }
-          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 2);
+          Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
           return TWEET;
 		}
 		if(myCar.damage > 0) return FIX;
@@ -269,7 +269,7 @@ public class Bot {
         return OIL;
       }
       if ((hasTweet)
-          && (myCarLane != opponentLane)) {
+          && (myCarLane != opponentLane || opponentSpeed >= 8)) {
 		if (opponentLane == 1){
 		  Command TWEET = new TweetCommand(opponentLane + 1, opponentBlock + opponentSpeed + 2);
           return TWEET;
@@ -278,7 +278,7 @@ public class Bot {
 		  Command TWEET = new TweetCommand(opponentLane - 1, opponentBlock + opponentSpeed + 2);
           return TWEET;
 		}
-        Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 2);
+        Command TWEET = new TweetCommand(opponentLane, opponentBlock + opponentSpeed + 3);
         return TWEET;
       }
     }
