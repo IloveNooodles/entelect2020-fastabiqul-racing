@@ -120,7 +120,7 @@ public class Bot {
 	  
 	  if (canAccelerate) return ACCELERATE;
 	  /* use Powerup */
-	  if (canForward == 0) {
+	  if (canForward < 2) {
         if ((hasOil)
             && (opponentBlock < myCarBlock)
             && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
@@ -163,13 +163,6 @@ public class Bot {
         return FIX;
       }
       return BOOST;
-    }
-	/* Lane prio, harus di tengah */
-    if (myCarLane == 1 && canRight <= canForward) {
-      return TURN_RIGHT;
-    }
-    if (myCarLane == 4 && canLeft <= canForward) {
-      return TURN_LEFT;
     }
     /* Prio take boost */
     if (containBoost(blocksFront)) {
@@ -249,6 +242,13 @@ public class Bot {
     if (containEmp(blocksLeft) && canLeft < 2) {
       return TURN_LEFT;
     }
+	/* Lane prio, harus di tengah */
+    if (myCarLane == 1 && canRight <= canForward) {
+      return TURN_RIGHT;
+    }
+    if (myCarLane == 4 && canLeft <= canForward) {
+      return TURN_LEFT;
+    }
 	/* far Lane prio, harus di tengah */
     if (myCarLane == 1 && canRightFar <= canForwardFar) {
       return TURN_RIGHT;
@@ -300,6 +300,7 @@ public class Bot {
 	  if(myCar.damage > 0) return FIX;
       return SKIP;
 	}
+	if (canForward >= 2) return bestLane;
 	/* if cant do anything */
 	if (hasLizard && !lastBlocked) {
       return LIZARD;
