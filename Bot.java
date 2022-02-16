@@ -307,6 +307,7 @@ public class Bot {
           && (countLizard >= 3)) {
         return LIZARD;
       }
+      return SKIP;
     }
     if (containPowerUps(blocksRight) && canRight < canLeft) {
       return TURN_RIGHT;
