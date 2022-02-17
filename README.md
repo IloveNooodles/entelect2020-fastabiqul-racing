@@ -1,6 +1,4 @@
-# overdrive-bot
-
-## Welcome to fastabiqul-racing-bot
+# Welcome to fastabiqul-racing
 
 This project was made to fulfill Tubes 1 Algorithm Strategies
 
