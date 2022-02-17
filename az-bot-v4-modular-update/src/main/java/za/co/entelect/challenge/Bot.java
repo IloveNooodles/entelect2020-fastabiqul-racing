@@ -139,6 +139,25 @@ public class Bot {
     }
 	
 	// MAIN
+	// LastMove handle
+	if (myCarBlock+myCarSpeed >= 1500){
+	  if (hasBoost && myCar.damage!= 0 && canForward <= 1){
+		return BOOST;
+	  }
+	  Command moveForward = CAN_FORWARD();
+	  if (moveForward != null){
+	    return moveForward;
+	  }
+	  if (hasLizard && !lastBlocked){
+		return LIZARD;
+	  }
+	  if (canLeft == 0){
+		  return TURN_LEFT;
+	  }
+	  if (canRight == 0){
+		  return TURN_RIGHT;
+	  }
+	}
     // Fix worst condition
     if (myCar.damage >= 3) {
       if (myCarSpeed < listSpeed[myCar.damage] && canAccelerate)
