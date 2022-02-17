@@ -417,14 +417,6 @@ public class Bot {
     }
 	return null;
   }
-  
-  private Command PowerupDecision() {
-    Command moveForward = CAN_FORWARD();
-	if (moveForward != null){
-	  return moveForward;
-	}
-    return null;
-  }
 
   private Boolean RIGHT(int canRight, int canForward, int canLeft, boolean hasLizard) {
     return (canRight == 0) || (canRight <= canForward && canRight <= canLeft && !hasLizard);
@@ -436,10 +428,10 @@ public class Bot {
   
   private Command prioPowerUp() {
     if (containPowerUps(blocksFront)) {
-	  Command decision = PowerupDecision();
-      if (decision != null) {
-        return decision;
-      }
+	  Command moveForward = CAN_FORWARD();
+	  if (moveForward != null){
+	    return moveForward;
+	  }
     }
     if ((containPowerUps(blocksRight))
         && (RIGHT(canRight, canForward, canLeft, hasLizard))) {
@@ -455,10 +447,10 @@ public class Bot {
   private Command BOOST_EMP(Boolean choice) {
     if (choice) {
       if (containBoost(blocksFront)) {
-        Command decision = PowerupDecision();
-        if (decision != null) {
-          return decision;
-        }
+	    Command moveForward = CAN_FORWARD();
+	    if (moveForward != null){
+	      return moveForward;
+	    }
       }
       if ((containBoost(blocksRight))
           && (RIGHT(canRight, canForward, canLeft, hasLizard))) {
@@ -470,10 +462,10 @@ public class Bot {
       }
     } else {
       if (containEmp(blocksFront)) {
-        Command decision = PowerupDecision();
-        if (decision != null) {
-          return decision;
-        }
+		Command moveForward = CAN_FORWARD();
+		if (moveForward != null){
+	      return moveForward;
+		}
       }
       if ((containEmp(blocksRight))
           && (RIGHT(canRight, canForward, canLeft, hasLizard))) {
