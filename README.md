@@ -7,7 +7,7 @@ This project was made to fulfill Tubes 1 Algorithm Strategies
 | Nama                  | NIM      |
 | --------------------- | -------- |
 | Gagas Praharsa Bahar  | 13520016 |
-| uhammad Garebaldhie ER Rahman| 13520029 |
+| Muhammad Garebaldhie ER Rahman| 13520029 |
 | Atabik Muhammad Azfa Shofi          | 13520159 |
 
 ## General Information
