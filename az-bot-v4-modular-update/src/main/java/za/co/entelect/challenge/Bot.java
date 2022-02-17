@@ -87,7 +87,7 @@ public class Bot {
     map = gameState.lanes;
     startBlock = map.get(0)[0].position.block;
     currentBlock = myCarBlock - startBlock;
-    boosting = myCar.boostCounter > 0;
+    boosting = myCar.boosting;
 	
 	// Lane decision initialize
     blocksFront = getBlocks(myCarLane, myCarBlock + 1, myCarSpeed, gameState);
@@ -141,7 +141,7 @@ public class Bot {
 	// MAIN
 	// LastMove handle
 	if (myCarBlock+myCarSpeed >= 1500){
-	  if (hasBoost && myCar.damage!= 0 && canForward <= 1){
+	  if (hasBoost && myCar.damage == 0 && canForward <= 1){
 		return BOOST;
 	  }
 	  Command moveForward = CAN_FORWARD();
@@ -306,12 +306,16 @@ public class Bot {
     int tmp = myCarBlock - startBlock;
     int i = tmp;
     for (i = tmp; i <= tmp + myCarSpeed; i++) {
-      if (laneList[i] == null || laneList[i].terrain == Terrain.FINISH) {
+      if (laneList[i] == null) {
         break;
       }
+	  //CyberTruck bisa tiban finish
       if (laneList[i].isOccupiedByCyberTruck == true)
         sum += 4; // karena ngestuck > 2 wall dsb
-      else if (laneList[i].terrain == Terrain.WALL)
+	  if (laneList[i].terrain == Terrain.FINISH) {
+        break;
+      }
+      if (laneList[i].terrain == Terrain.WALL)
         sum += 3;
       else if ((laneList[i].terrain == Terrain.MUD)
           || (laneList[i].terrain == Terrain.OIL_SPILL)) {
@@ -372,7 +376,7 @@ public class Bot {
         && ((opponentLane == myCarLane) || (canLeft != 0 && canRight != 0))) {
       return OIL;
     }
-    if ((hasTweet)
+    if ((hasTweet) && !(myCarLane == opponentLane && myCarBlock <= opponentBlock + opponentSpeed + 3)
         && (myCarLane != opponentLane || opponentSpeed >= 8)) {
       if (opponentBlock >= 1490) {
         TWEET = new TweetCommand(opponentLane, 1500);
@@ -406,10 +410,6 @@ public class Bot {
 	if (moveForward != null){
 	  return moveForward;
 	}
-    if ((hasLizard) && (!lastBlocked)
-      && (countLizard > 1)) {
-      return LIZARD;
-    }
     return null;
   }
 
@@ -525,7 +525,7 @@ public class Bot {
     Command searchBoost;
 	Command moveForward;
     /* EMP if losing in endgame */
-    if ((hasEMP) && (myCarLane != opponentLane || myCarBlock + myCarSpeed <= opponentBlock)
+    if ((hasEMP) && !(myCarLane == opponentLane && myCarBlock + myCarSpeed > opponentBlock)
         && (opponentBlock > myCarBlock) && myCarSpeed >= listSpeed[myCar.damage + 1]
         && (Math.abs(opponentLane - myCarLane) <= 1) && canForward == 0) {
       return EMP;
