@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>za.co.entelect.challenge</groupId>
-    <artifactId>FASTabiqul-bot4</artifactId>
+    <artifactId>FASTabiqul-bot-v4-modular</artifactId>
     <version>4-modular</version>
 
     <properties>
