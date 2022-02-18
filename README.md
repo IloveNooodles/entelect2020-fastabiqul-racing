@@ -17,6 +17,7 @@ This is a bot that is meant to play Overdrive, a game made for Entelect Challeng
 This bot was made using Greedy Algorithm approach, where we prioritize speed above (almost) everything, collecting all em boosts we could, with a few secret recipes here and there to punish enemies with EMP while we are behind implemented using java.
 
 ## Screenshot
+
 This image is taken using [community visualizer](https://entelect-replay.raezor.co.za/)
 ![image](https://user-images.githubusercontent.com/63847012/154538721-af7450a7-88bd-4d53-ad29-49b9df6b00df.png)
 
@@ -33,7 +34,7 @@ To run the game-engine, use the game runner provided in the starter-pack of Ente
 
 After downloading the starter-pack, unzip it and set the game-config.json bot to our bot directory. It should be
 
-`the_directory_you_cloned/src/az-bot-v4-superior`
+`the_directory_you_cloned/src/`
 
 After that, simply run the game runner.
 
@@ -46,7 +47,8 @@ Unix users:
 `make run`
 
 ## Room for improvement
-1. The algorithm can be more effective and efficient and use deeper checking to gain more decision insight
-2. Power Up Usage can be improved more to gain more poin
 
-### copyright fastabiqul-racing 2022 
+1. The algorithm can be more effective and efficient and use deeper checking to gain more decision insight
+2. Power Up Usage can be improved more to gain more point
+
+### copyright fastabiqul-racing 2022
