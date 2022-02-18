@@ -28,15 +28,19 @@ This image is taken using [community visualizer](https://entelect-replay.raezor.
 
 ## How to build
 
-This bot has come prebuilt with the .jar file that you can find in the bin directory. But, if you want to build it yourself, you can use Maven or used IntelleJ to provide prebuild maven inside of it.
+This bot has come prebuilt with the .jar file that you can find in the bin directory. But, if you want to build it yourself, you can use Maven or used IntelliJ to provide prebuild maven inside of it.
+
+To build:
+
+`mvn install -f src/pom.xml`
 
 To run the game-engine, use the game runner provided in the starter-pack of Entelect Challenge. You can download it here: [starter-pack](https://github.com/EntelectChallenge/2020-Overdrive/releases/tag/2020.3.4)
 
-After downloading the starter-pack, unzip it and set the game-config.json bot to our bot directory. It should be
+After downloading the starter-pack, unzip it and set the game-runner-config.json player-a or player-b to our bot directory. It should be
 
 `the_directory_you_cloned/src/`
 
-After that, simply run the game runner.
+After that, simply run the game runner inside the starter-pack.
 
 Windows users:
 
