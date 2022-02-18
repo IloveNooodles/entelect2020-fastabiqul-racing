@@ -105,8 +105,11 @@ public class Bot {
     canForwardFar = canMove(myCarLane, myCarBlock + 1, 15, opponent, gameState);
     bestLane = compareLane(canForward, canLeft, canRight, myCarLane);
 	
-    canAccelerate = canMove(myCarLane, myCarBlock, myCarSpeed + 2, opponent, gameState) == 0
-        && (myCarSpeed < listSpeed[myCar.damage]);
+    canAccelerate = 
+		((canMove(myCarLane, myCarBlock, myCarSpeed + 1, opponent, gameState) == 0 && myCarSpeed > 6)||
+		(canMove(myCarLane, myCarBlock, myCarSpeed + 2, opponent, gameState) == 0 && myCarSpeed == 6)||
+		(canMove(myCarLane, myCarBlock, myCarSpeed + 3, opponent, gameState) == 0 && myCarSpeed < 6)
+		) && (myCarSpeed < listSpeed[myCar.damage]);
 	
 	// Endgame
     endGame = myCarBlock >= 1350;
